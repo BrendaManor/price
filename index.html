@@ -50,7 +50,7 @@
     </el-form>
     <el-descriptions title="总结">
         <el-descriptions-item label="日MACD">{{macdShow}}</el-descriptions-item>
-        <el-descriptions-item label="状态" :style="twentyRateShowStyle">{{twentyRateShowStatus}}</el-descriptions-item>
+        <el-descriptions-item label="状态"><span :style="todayRateShowStyle">{{todayRateShowStatus}}</span></el-descriptions-item>
 </div>
     <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.7.9/vue.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.min.js"></script>
@@ -72,6 +72,7 @@
                 rangeEnd: 0,
                 yesterdayMACD:0,
                 todayMACD:0,
+                macdShow: '',
         },
         computed:{
             todayRateShowStatus(){
@@ -80,10 +81,10 @@
                     return "Follow Buy [大于 10%]"
                 } else if(this.todayMAPriceRate < -0.05) {
                     return  "Focus Sell [小于 -5%]"
-                }  else if(-0.05<this.todayMAPriceRate < 0) {
+                }  else if(this.todayMAPriceRate < 0) {
                     return  "不建议做T"
                 }else{
-                    return "观望 或 "
+                    return "观望 或 做 T"
                 }
             },
             todayRateShowStyle(){
@@ -115,11 +116,11 @@
                 this.yestoryMAPriceRateShow = this.yestoryMAPriceRate * 100 + '%';
                 this.yestoryMAPriceRateSet = this.yestoryMAPriceRate / 2 * 100 + '%';
                 this.rangeStart = todayClose - todayClose * this.todayMAPriceRate;
-                this.rangeEnd = maPrice;        
+                this.rangeEnd = todayClose + todayClose * this.todayMAPriceRate;
             },
             changeMACD(){
-                const range = this.todayMACD - this.yesterdayMACD > 0
-                this.macdShow = range ? 'MACD 递增: ' +  range : 'MACD 递减: ' + range;  
+                const range = this.todayMACD - this.yesterdayMACD;
+                this.macdShow = range > 0 ? 'MACD 递增: ' +  range : 'MACD 递减: ' + range;  
             }
         }
     });
