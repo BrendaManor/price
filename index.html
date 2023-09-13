@@ -3,35 +3,57 @@
 
 <head>
     <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+    <meta name="layoutmode" content="fitscreen">
+    <meta charset="utf-8">
+    <meta http-equiv="cache-control" content="no-cache">
 </head>
 
 <body>
     <div id="app">
     <el-form ref="form" :model="form" label-width="180px">
-        <el-form-item label="Yesterday Close">
-          <el-input v-model="form.close" precision="2" step="0.01" type="number" @change="getShowCalc"></el-input>
+        <el-form-item label="Today Close">
+            <el-input v-model="form.todayClose" precision="2" step="0.01" type="number" @change="getShowCalc"></el-input>
         </el-form-item>
-        <!-- <el-form-item label="Five">
-            <el-input v-model="form.five" precision="2" step="0.01" type="number" @change="getShowCalc"></el-input>
-        </el-form-item> -->
-        <el-form-item label="Today MA 20/ 30">
-            <el-input v-model="form.twenty" type="number" step="0.01" @change="getShowCalc"></el-input>
+        <el-form-item label="Front MA Price">
+          <el-input v-model="form.frontPrice" precision="2" step="0.01" type="number" @change="getShowCalc"></el-input>
+          <el-link type="primary">一般选择 5 MA</el-link>
         </el-form-item>
-        <el-form-item label="All[20]/ETF[30] Rate">
-            <el-input v-model="twentyRateShow" disabled>
+        <el-form-item label="Target MA Price">
+            <el-input v-model="form.maPrice" type="number" step="0.01" @change="getShowCalc"></el-input>
+            <el-link type="primary">股一般选择 20 MA --------- ETF 一般选 30 MA 也可输入 60 120</el-link>
+        </el-form-item>
+        <el-form-item label="Target/Today PriceRate">
+            <el-input v-model="todayMAPriceRateShow" disabled>
             </el-input>
-            <span :style="twentyRateShowStyle">{{twentyRateShowStatus}}</span>
         </el-form-item>
-        <el-form-item label="Stone Rate Set">
-            <el-input v-model="twentyRateShowSet" disabled></el-input>
+        <el-form-item label="Target/Front Price Rate">
+            <el-input v-model="frontMAPriceRateShow" disabled>
+            </el-input>
+        </el-form-item>
+        <el-form-item label="Normal Stone Rate Set">
+            <el-input v-model="frontMAPriceRateSet" disabled></el-input>
+            <el-link type="primary">此比例 设置网格合适 是 Front MA Price 生成，是 Target/Front/2 </el-link>
+            <el-link type="danger"> 📉 Open Sell Then this Rate Buy</el-link>
+            <el-link type="danger"> 📈 Open Buy Then this Rate Sell</el-link>
         </el-form-item>
         <el-form-item label="Start">
-            <el-input v-model="twentyStart" disabled></el-input>
+            <el-input v-model="rangeStart" disabled></el-input>
+            <el-link type="primary">区间价格 由 Today Close 生成 与 Target MA Price 生成</el-link>
         </el-form-item>
         <el-form-item label="End">
-            <el-input v-model="twentyEnd" disabled></el-input>
+            <el-input v-model="rangeEnd" disabled></el-input>
+            <el-link type="primary">区间价格 由 Today Close 生成 与 Target MA Price 生成</el-link>
+        </el-form-item>
+        <el-form-item label="Yesterday MACD">
+            <el-input v-model="yesterdayMACD" type="number" step="0.001" precision="3" @change="changeMACD"></el-input>
+        </el-form-item>
+        <el-form-item label="Today MACD">
+            <el-input v-model="todayMACD" type="number" step="0.001" precision="3" @change="changeMACD"></el-input>
         </el-form-item>
     </el-form>
+    <el-descriptions title="总结">
+        <el-descriptions-item label="日MACD">{{macdShow}}</el-descriptions-item>
+        <el-descriptions-item label="状态"><span :style="todayRateShowStyle">{{todayRateShowStatus}}</span></el-descriptions-item>
 </div>
     <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.7.9/vue.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.min.js"></script>
@@ -40,35 +62,42 @@
         el: "#app",
         data: {
             form:{
-                close:0,
-                five:0,
-                twenty:0,
+                frontPrice:0,
+                todayClose:0,
+                maPrice:0,
             },
-            twentyRate: 0,
-            twentyRateShow: 0,
-            twentyRateShowSet: 0,
-                twentyStart: 0,
-                twentyEnd: 0,
+            todayMAPriceRate: 0,
+            frontMAPriceRate: 0,
+            todayMAPriceRateShow: 0,
+            frontMAPriceRateShow: 0,
+            frontMAPriceRateSet: 0,
+                rangeStart: 0,
+                rangeEnd: 0,
+                yesterdayMACD:0,
+                todayMACD:0,
+                macdShow: '',
         },
         computed:{
-            twentyRateShowStatus(){
-                if(this.twentyRate > 0.1){
-                    console.log(this.twentyRate);
+            todayRateShowStatus(){
+                if(this.todayMAPriceRate > 0.1){
+                    console.log(this.todayMAPriceRate);
                     return "Follow Buy [大于 10%]"
-                } else if(this.twentyRate < -0.05) {
-                    return  "Focus sell [小于 -5%]"
-                } else{
-                    return "观望"
+                } else if(this.todayMAPriceRate < -0.05) {
+                    return  "Focus Sell [小于 -5%]"
+                }  else if(this.todayMAPriceRate < 0) {
+                    return  "不建议做T"
+                }else{
+                    return "观望 或 做 T"
                 }
             },
-            twentyRateShowStyle(){
-                    if(this.twentyRate > 0.1){
-                    console.log(this.twentyRate);
+            todayRateShowStyle(){
+                    if(this.todayMAPriceRate > 0.1){
+                    console.log(this.todayMAPriceRate);
                     return {
                         color: 'blue !important',
                         fontWeight: 'bold'
                     }
-                } else if(this.twentyRate < -0.05) {
+                } else if(this.todayMAPriceRate < -0.05) {
                     return  {
                         color: 'red !important',
                         fontWeight: 'bold',
@@ -79,19 +108,22 @@
             }
         },
         methods: {
-            // 股票 低于 20日水平线 > 0% 为可购买水平
             getShowCalc(){
-                let {close,twenty} = this.form;
-                close = Number(close);
-                twenty = Number(twenty);
-                this.twentyRate = (twenty - close)/close;
-                console.log(this.twentyRate);
-                this.twentyRateShow = this.twentyRate * 100 + '%';
-                this.twentyRateShowSet = this.twentyRate / 2 * 100 + '%';
-                this.twentyStart = close - close * this.twentyRate;
-                this.twentyEnd = twenty;
-                console.log(this.twentyRate)
-               
+                let {frontPrice,todayClose,maPrice} = this.form;
+                frontPrice = Number(frontPrice);
+                todayClose = Number(todayClose);
+                maPrice = Number(maPrice);
+                this.todayMAPriceRate = (maPrice - todayClose)/todayClose; 
+                this.todayMAPriceRateShow = this.todayMAPriceRate * 100 + '%';
+                this.frontMAPriceRate = (maPrice - frontPrice)/frontPrice;
+                this.frontMAPriceRateShow = this.frontMAPriceRate * 100 + '%';
+                this.frontMAPriceRateSet = this.frontMAPriceRate / 2 * 100 + '%';
+                this.rangeStart = todayClose - todayClose * this.todayMAPriceRate;
+                this.rangeEnd = todayClose + todayClose * this.todayMAPriceRate;
+            },
+            changeMACD(){
+                const range = this.todayMACD - this.yesterdayMACD;
+                this.macdShow = range > 0 ? 'MACD 递增: ' +  range : 'MACD 递减: ' + range;  
             }
         }
     });
@@ -106,5 +138,11 @@
         width: 100vm;
         height: 100vh;
         margin: 30px;
+    }
+    .el-form-item{
+        margin-bottom: 15px;
+    }
+    .el-link{
+        line-height: 26px;
     }
 </style>
