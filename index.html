@@ -14,6 +14,7 @@
         <el-form-item label="Today Close">
             <el-input v-model="form.todayClose" precision="2" step="0.01" type="number" @change="getShowCalc"></el-input>
         </el-form-item>
+<<<<<<< HEAD
         <el-form-item label="Front MA Price">
           <el-input v-model="form.frontPrice" precision="2" step="0.01" type="number" @change="getShowCalc"></el-input>
           <el-link type="primary">一般选择 5 MA</el-link>
@@ -43,6 +44,34 @@
         <el-form-item label="End">
             <el-input v-model="rangeEnd" disabled></el-input>
             <el-link type="primary">区间价格 由 Today Close 生成 与 Target MA Price 生成</el-link>
+=======
+        <el-form-item label="Today Close">
+            <el-input v-model="form.todayClose" precision="2" step="0.01" type="number" @change="getShowCalc"></el-input>
+        </el-form-item>
+        <el-form-item label="Today MA Price">
+            <el-input v-model="form.maPrice" type="number" step="0.01" @change="getShowCalc"></el-input>
+            <el-link type="primary">股一般选择 20 MA  ETF 一般选 30 MA 也可输入 60 120</el-link>
+        </el-form-item>
+        <el-form-item label="Today Rate">
+            <el-input v-model="todayMAPriceRateShow" disabled>
+            </el-input>
+        </el-form-item>
+        <el-form-item label="Yesterday Close Rate">
+            <el-input v-model="yestoryMAPriceRateShow" disabled>
+            </el-input>
+        </el-form-item>
+        <el-form-item label="Stone Rate Set">
+            <el-input v-model="yestoryMAPriceRateSet" disabled></el-input>
+            <el-link type="primary">此比例 设置网格合适 是 Yesterday Close 生成，是Yesterday 的一半</el-link>
+        </el-form-item>
+        <el-form-item label="Start">
+            <el-input v-model="rangeStart" disabled></el-input>
+            <el-link type="primary">区间价格 由 今日 Close 生成 与 MA Price 生成</el-link>
+        </el-form-item>
+        <el-form-item label="End">
+            <el-input v-model="rangeEnd" disabled></el-input>
+            <el-link type="primary">区间价格 由 今日 Close 生成 与 MA Price 生成</el-link>
+>>>>>>> 9c29f67cafe4f3257ecced391cf8a7532c9fe29d
         </el-form-item>
         <el-form-item label="Yesterday MACD">
             <el-input v-model="yesterdayMACD" type="number" step="0.001" precision="3" @change="changeMACD"></el-input>
@@ -62,15 +91,26 @@
         el: "#app",
         data: {
             form:{
+<<<<<<< HEAD
                 frontPrice:0,
+=======
+                close:0,
+>>>>>>> 9c29f67cafe4f3257ecced391cf8a7532c9fe29d
                 todayClose:0,
                 maPrice:0,
             },
             todayMAPriceRate: 0,
+<<<<<<< HEAD
             frontMAPriceRate: 0,
             todayMAPriceRateShow: 0,
             frontMAPriceRateShow: 0,
             frontMAPriceRateSet: 0,
+=======
+            yestoryMAPriceRate: 0,
+            todayMAPriceRateShow: 0,
+            yestoryMAPriceRateShow: 0,
+            yestoryMAPriceRateSet: 0,
+>>>>>>> 9c29f67cafe4f3257ecced391cf8a7532c9fe29d
                 rangeStart: 0,
                 rangeEnd: 0,
                 yesterdayMACD:0,
@@ -109,15 +149,26 @@
         },
         methods: {
             getShowCalc(){
+<<<<<<< HEAD
                 let {frontPrice,todayClose,maPrice} = this.form;
                 frontPrice = Number(frontPrice);
+=======
+                let {close,todayClose,maPrice} = this.form;
+                close = Number(close);
+>>>>>>> 9c29f67cafe4f3257ecced391cf8a7532c9fe29d
                 todayClose = Number(todayClose);
                 maPrice = Number(maPrice);
                 this.todayMAPriceRate = (maPrice - todayClose)/todayClose; 
                 this.todayMAPriceRateShow = this.todayMAPriceRate * 100 + '%';
+<<<<<<< HEAD
                 this.frontMAPriceRate = (maPrice - frontPrice)/frontPrice;
                 this.frontMAPriceRateShow = this.frontMAPriceRate * 100 + '%';
                 this.frontMAPriceRateSet = this.frontMAPriceRate / 2 * 100 + '%';
+=======
+                this.yestoryMAPriceRate = (maPrice - close)/close;
+                this.yestoryMAPriceRateShow = this.yestoryMAPriceRate * 100 + '%';
+                this.yestoryMAPriceRateSet = this.yestoryMAPriceRate / 2 * 100 + '%';
+>>>>>>> 9c29f67cafe4f3257ecced391cf8a7532c9fe29d
                 this.rangeStart = todayClose - todayClose * this.todayMAPriceRate;
                 this.rangeEnd = todayClose + todayClose * this.todayMAPriceRate;
             },
