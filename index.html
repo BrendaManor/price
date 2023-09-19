@@ -21,24 +21,32 @@
             <el-input v-model="form.maPrice" type="number" step="0.01" @change="getShowCalc"></el-input>
         </el-form-item>
         <el-link type="primary">股一般选择 20 MA --------- ETF 一般选 30 MA 也可输入 60 120</el-link>
-        <el-form-item label="Target/Today PriceRate">
+        <el-form-item label="Target/Today Rate">
             <el-input v-model="todayMAPriceRateShow" disabled>
             </el-input>
         </el-form-item>
-        <el-form-item label="Target/Front Price Rate">
+        <el-form-item label="Target/Front Rate">
             <el-input v-model="frontMAPriceRateShow" disabled>
             </el-input>
         </el-form-item>
-        <el-form-item label="Normal Stone Rate Set">
+        <el-link type="info">起：{{getOriginalStartPrice(form.todayClose, frontMAPriceRate) }}<span style="margin-left: 15px;">止：{{getOriginalEndPrice(form.todayClose, frontMAPriceRate) }}</span></el-link>
+        <el-link><span style="color:#F56C6C">📉 Open Sell Then this Rate Buy</span><span style="color: #e6a23c;">📈 Open Buy Then this Rate Sell</span></el-link>
+        <el-form-item label="Normal Stone Rate">
             <el-input v-model="frontMAPriceRateSet" disabled></el-input>
         </el-form-item>
+        <el-link type="success">起：{{getNormalStartPrice(form.todayClose, frontMAPriceRate/2) }}<span style="margin-left: 15px;">止：{{getNormalEndPrice(form.todayClose, frontMAPriceRate/2) }}</span></el-link>
         <el-link type="primary">此比例 设置网格合适 是 Front MA Price 生成，是 Target/Front/2 </el-link>
         <el-link><span style="color:#F56C6C">📉 Open Sell Then this Rate Buy</span><span style="color: #e6a23c;">📈 Open Buy Then this Rate Sell</span></el-link>
-        <el-form-item label="Start">
+        <el-form-item label="Ratio Stone Rate">
+            <el-input v-model="frontMAPriceRateRatioSetShow" disabled></el-input>
+        </el-form-item>
+        <el-link type="success">起：{{getNormalStartPrice(form.todayClose, frontMAPriceRateRatioSet) }}<span style="margin-left: 15px;">止：{{getNormalEndPrice(form.todayClose, frontMAPriceRateRatioSet) }}</span></el-link>
+        <el-link type="primary">此比例 设置网格合适 是 Front MA Price 生成，是 Rate/{{this.bigRate + '-' + this.smallRate}})*(10-1) </el-link>
+        <el-form-item label="Start Priod">
             <el-input v-model="rangeStart" disabled></el-input>
         </el-form-item>
         <el-link type="primary">区间价格 由 Today Close 生成 与 Target MA Price 生成</el-link>
-        <el-form-item label="End">
+        <el-form-item label="End Priod">
             <el-input v-model="rangeEnd" disabled></el-input>
         </el-form-item>
         <el-link type="primary">区间价格 由 Today Close 生成 与 Target MA Price 生成</el-link>
@@ -69,11 +77,15 @@
             todayMAPriceRateShow: 0,
             frontMAPriceRateShow: 0,
             frontMAPriceRateSet: 0,
+            frontMAPriceRateRatioSet: 0,
+            frontMAPriceRateRatioSetShow: 0,
                 rangeStart: 0,
                 rangeEnd: 0,
                 yesterdayMACD:0,
                 todayMACD:0,
                 macdShow: '',
+                bigRate:2.1,
+                smallRate:1.9
         },
         computed:{
             todayRateShowStatus(){
@@ -95,13 +107,33 @@
                         color: 'blue !important',
                         fontWeight: 'bold'
                     }
-                } else if(this.todayMAPriceRate < -0.05) {
+                } else if(this.todayMAPriceRate < -0.05 || this.todayRateShowStatus === '不建议做T') {
                     return  {
                         color: 'red !important',
                         fontWeight: 'bold',
                     }
                 } else{
                     return {}
+                }
+            },
+            getOriginalStartPrice(){
+                return (start,factor)=>{
+                    return Math.round((start * (1-Math.abs(factor)))*1000)/1000;
+                }
+            },
+            getOriginalEndPrice(){
+                return (start,factor)=>{
+                    return Math.round((start * (1+Math.abs(factor)))*1000)/1000;
+                }
+            },
+            getNormalStartPrice(){
+                return (start,factor)=>{
+                    return Math.round((start * (1-Math.abs(factor)))*1000)/1000;
+                }
+            },
+            getNormalEndPrice(){
+                return (start,factor)=>{
+                    return Math.round((start * (1+Math.abs(factor)))*1000)/1000;
                 }
             }
         },
@@ -116,6 +148,18 @@
                 this.frontMAPriceRate = (maPrice - frontPrice)/frontPrice;
                 this.frontMAPriceRateShow = this.frontMAPriceRate * 100 + '%';
                 this.frontMAPriceRateSet = this.frontMAPriceRate / 2 * 100 + '%';
+                const frontMAPriceRateAbs = Math.abs(this.frontMAPriceRate) * 100;
+                console.log(this.frontMAPriceRate)
+                console.log(frontMAPriceRateAbs);
+                const rate = (this.bigRate-this.smallRate)/(10-1);
+                console.log(rate);
+                console.log(this.smallRate+(frontMAPriceRateAbs - 1)*rate);
+                const frontMAPriceRateRatio = this.frontMAPriceRate > 0.1 ? this.smallRate+((10-(frontMAPriceRateAbs-10)) - 1)*rate : this.smallRate+(frontMAPriceRateAbs - 1)*rate;
+                console.log(frontMAPriceRateRatio)
+                this.frontMAPriceRateRatioSet = this.frontMAPriceRate / frontMAPriceRateRatio;
+                console.log(this.frontMAPriceRateRatioSet);
+                this.frontMAPriceRateRatioSetShow = this.frontMAPriceRate / frontMAPriceRateRatio * 100 + '%';;
+                console.log(this.frontMAPriceRateRatioSetShow);
                 this.rangeStart = todayClose - todayClose * this.todayMAPriceRate;
                 this.rangeEnd = todayClose + todayClose * this.todayMAPriceRate;
             },
